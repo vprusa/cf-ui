@@ -12,5 +12,5 @@ def web_session(request):
 
     return web_session
 
-def test_test(web_session):
+def test_failed(web_session):
     assert False, "Failing Test"
