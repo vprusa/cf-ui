@@ -74,7 +74,7 @@ sleep 5s
 
 WAIT_FOR_APPLIANCE_STATUS="True"
 
-while [[ $WAIT_FOR_APPLIANCE_STATUS = "True" ]] ; do
+for (( c=1; c<=$APPLIANCE_WAIT_CYCLES; c++ )) ; do
 sleep 10s
 rm -rf sprout_appliance_pool_status.json
 touch sprout_appliance_pool_status.json
@@ -82,12 +82,19 @@ touch sprout_appliance_pool_status.json
 curl -s -H "Content-Type: application/json" -X POST -d \
 '{"method":"request_check","args":["'${REQUEST_APPLIANCES_POOL_ID}'"],"kwargs":{},"auth":["'${SPROUT_USER}'","'${SPROUT_PASSWORD}'"]}' \
 http://10.16.4.94/appliances/api > sprout_appliance_pool_status.json
+
+IS_APPLIANCE_REQUEST_FINISHED=$(cat sprout_appliance_pool_status.json | python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["result"]["finished"]);')
+if [ "$IS_APPLIANCE_REQUEST_FINISHED" != "False" ] ; then
+
 REQUEST_APPLIANCES_RESULT=$(cat sprout_appliance_pool_status.json | python -c 'import json,sys;obj=json.load(sys.stdin);print(obj["result"]);')
 echo "Waiting for pool to load.."
 echo "$REQUEST_APPLIANCES_RESULT"
 if ! [[ -z $REQUEST_APPLIANCES_RESULT ]] ; then
-WAIT_FOR_APPLIANCE_STATUS="False"
+break
 fi
+
+fi
+
 done
 
 # delete file with old MIQ IP
